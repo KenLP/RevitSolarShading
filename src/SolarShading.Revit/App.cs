@@ -17,10 +17,17 @@ public sealed class App : IExternalApplication
         RibbonPanel panel = application.CreateRibbonPanel(TabName, "Shading & ETTV");
 
         panel.AddItem(new PushButtonData(
-            "SS_GetShadingDevices", "Get Shading\nDevices", asm,
+            "SS_SetupParameters", "Setup\nParameters", asm,
+            "SolarShading.Revit.Commands.SetupParametersCommand")
+        {
+            ToolTip = "Create and bind the add-in's shared parameters (run once per project).",
+        });
+
+        panel.AddItem(new PushButtonData(
+            "SS_GetShadingDevices", "Shading\nDevices", asm,
             "SolarShading.Revit.Commands.GetShadingDevicesCommand")
         {
-            ToolTip = "Tag the selected elements as shading devices.",
+            ToolTip = "Tag / untag / review the shading devices (saved in the model).",
         });
 
         panel.AddItem(new PushButtonData(

@@ -31,7 +31,8 @@ public static class ShadingFlag
         DefinitionFile file = SharedParameterFile.Ensure(app);
         DefinitionGroup group = file.Groups.get_Item(GroupName) ?? file.Groups.Create(GroupName);
         Definition def = group.Definitions.get_Item(Name)
-            ?? group.Definitions.Create(new ExternalDefinitionCreationOptions(Name, SpecTypeId.Boolean.YesNo));
+            ?? group.Definitions.Create(
+                new ExternalDefinitionCreationOptions(Name, SpecTypeId.Boolean.YesNo) { GUID = ParameterGuids.ShadingDevice });
 
         if (doc.ParameterBindings.Contains(def))
             return;

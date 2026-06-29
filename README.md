@@ -4,7 +4,8 @@ An open-source Revit add-in for **envelope solar shading and ETTV/OTTV complianc
 exact shadow areas, window shading coefficients (SC2) and the envelope thermal-transfer
 value for tropical green-building codes — on Revit 2025–2027 (.NET 8 / .NET 10).
 
-See [EXPANSION_PLAN.md](EXPANSION_PLAN.md) for the standards-driven roadmap.
+Docs: [USER_GUIDE.md](USER_GUIDE.md) · [PARAMETERS_AND_SETUP.md](PARAMETERS_AND_SETUP.md) ·
+[EXPANSION_PLAN.md](EXPANSION_PLAN.md) (roadmap).
 
 ## Structure
 
@@ -20,7 +21,8 @@ src/SolarShading.Revit     Revit add-in (net8.0 for Revit 2025/2026, net10.0 for
   Solar/                   SiteSun (analytic sun in model coords — no transactions)
   Engine/                  RevitShadeEngine (read-only orchestration → SC2 + areas)
   Parameters/              ForgeTypeId shared params (results + shading-device flag)
-  Commands/                GetShadingDevices, ShadingOnWindows, BuildingShadowOnGround
+  Commands/                SetupParameters, ShadingDevices (tag/untag/review),
+                           ShadingOnWindows, BuildingShadowOnGround
   App.cs, SolarShading.addin
 tests/SolarShading.Core.Tests   xUnit — solar position vs NREL SPA reference + analytic shadow areas
 ```

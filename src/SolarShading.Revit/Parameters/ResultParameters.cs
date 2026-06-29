@@ -18,11 +18,12 @@ public static class ResultParameters
 
     private const string GroupName = "SolarShading";
 
-    private static readonly (string Name, ForgeTypeId Spec)[] TextParams =
+    private static readonly (string Name, ForgeTypeId Spec, Guid Guid)[] Params =
     {
-        (ShadedSeriesMarch, SpecTypeId.String.Text),
-        (ShadedSeriesJune, SpecTypeId.String.Text),
-        (ShadedSeriesDec, SpecTypeId.String.Text),
+        (ShadedSeriesMarch, SpecTypeId.String.Text, ParameterGuids.ShadedMarch),
+        (ShadedSeriesJune, SpecTypeId.String.Text, ParameterGuids.ShadedJune),
+        (ShadedSeriesDec, SpecTypeId.String.Text, ParameterGuids.ShadedDec),
+        (Sc2, SpecTypeId.Number, ParameterGuids.Sc2),
     };
 
     /// <summary>Ensure all result parameters exist and are bound to the given categories. Needs a transaction.</summary>
@@ -39,17 +40,16 @@ public static class ResultParameters
                 catSet.Insert(cat);
         }
 
-        foreach ((string name, ForgeTypeId spec) in TextParams)
-            BindIfMissing(doc, app, group, name, spec, catSet);
-        BindIfMissing(doc, app, group, Sc2, SpecTypeId.Number, catSet);
+        foreach ((string name, ForgeTypeId spec, Guid guid) in Params)
+            BindIfMissing(doc, app, group, name, spec, guid, catSet);
     }
 
     private static void BindIfMissing(
         Document doc, Application app, DefinitionGroup group,
-        string name, ForgeTypeId spec, CategorySet categories)
+        string name, ForgeTypeId spec, Guid guid, CategorySet categories)
     {
         Definition def = group.Definitions.get_Item(name)
-            ?? group.Definitions.Create(new ExternalDefinitionCreationOptions(name, spec));
+            ?? group.Definitions.Create(new ExternalDefinitionCreationOptions(name, spec) { GUID = guid });
 
         if (doc.ParameterBindings.Contains(def))
             return;
