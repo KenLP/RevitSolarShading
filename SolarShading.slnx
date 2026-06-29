@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SolarShading.Core/SolarShading.Core.csproj" />
+    <Project Path="src/SolarShading.Revit/SolarShading.Revit.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SolarShading.Core.Tests/SolarShading.Core.Tests.csproj" />
+  </Folder>
+</Solution>

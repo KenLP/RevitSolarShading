@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Revit 2025/2026 run on .NET 8; Revit 2027 runs on .NET 10. Pick the runtime
+       to match the chosen RevitVersion so one project serves every supported release. -->
+  <PropertyGroup Condition="'$(RevitVersion)' == '2027'">
+    <TargetFramework>net10.0-windows</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(RevitVersion)' != '2027'">
+    <TargetFramework>net8.0-windows</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>SolarShading.Revit</AssemblyName>
+    <RootNamespace>SolarShading.Revit</RootNamespace>
+    <!-- Revit loads the add-in by path, not via NuGet/deps.json resolution, so every
+         non-Revit dependency (Clipper2Lib.dll, SolarShading.Core.dll) must sit next to
+         the add-in DLL. This copies them into the output folder. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- Revit add-ins load their own dependencies; never copy the Revit API DLLs. -->
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+
+  <!-- Default to the installed Revit 2026; override with -p:RevitVersion=2027 etc.
+       The same net8.0 assembly is compatible with Revit 2025/2026/2027. -->
+  <PropertyGroup>
+    <RevitVersion Condition="'$(RevitVersion)' == ''">2026</RevitVersion>
+    <RevitDir Condition="'$(RevitDir)' == ''">C:\Program Files\Autodesk\Revit $(RevitVersion)\</RevitDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="RevitAPI">
+      <HintPath>$(RevitDir)RevitAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RevitAPIUI">
+      <HintPath>$(RevitDir)RevitAPIUI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="RevitAPIIFC">
+      <HintPath>$(RevitDir)RevitAPIIFC.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SolarShading.Core\SolarShading.Core.csproj" />
+  </ItemGroup>
+
+</Project>

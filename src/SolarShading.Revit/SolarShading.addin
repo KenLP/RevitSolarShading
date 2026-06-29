@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RevitAddIns>
+  <AddIn Type="Application">
+    <Name>Solar Shading</Name>
+    <Assembly>SolarShading.Revit.dll</Assembly>
+    <AddInId>7e6a2c64-9b1d-4f0a-8c3e-2f5d9a1b4c70</AddInId>
+    <FullClassName>SolarShading.Revit.App</FullClassName>
+    <VendorId>SSHD</VendorId>
+    <VendorDescription>Solar Shading / ETTV tools</VendorDescription>
+  </AddIn>
+</RevitAddIns>

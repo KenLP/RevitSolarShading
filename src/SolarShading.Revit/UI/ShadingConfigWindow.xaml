@@ -1,0 +1,102 @@
+<Window x:Class="SolarShading.Revit.UI.ShadingConfigWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Solar Shading — ETTV / OTTV" Height="600" Width="450"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        ShowInTaskbar="False">
+    <Window.Resources>
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Padding" Value="8"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Width" Value="60"/>
+            <Setter Property="Margin" Value="4,0,12,0"/>
+        </Style>
+    </Window.Resources>
+    <Grid Margin="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <GroupBox Grid.Row="0" Header="Reference dates">
+            <StackPanel Orientation="Horizontal">
+                <CheckBox x:Name="ChkMarch" Content="21 Mar" Margin="0,0,16,0" IsChecked="True"/>
+                <CheckBox x:Name="ChkJune" Content="21 Jun" Margin="0,0,16,0" IsChecked="True"/>
+                <CheckBox x:Name="ChkDecember" Content="21 Dec" IsChecked="True"/>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Grid.Row="1" Header="Time of day">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="From" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtStartHour" Text="7"/>
+                <TextBlock Text="to" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtEndHour" Text="18"/>
+                <TextBlock Text="h    Year" VerticalAlignment="Center"/>
+                <TextBox x:Name="TxtYear" Text="2026"/>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Grid.Row="2" Header="ETTV / OTTV compliance">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6" VerticalAlignment="Center">
+                    <TextBlock Text="Code" Width="60" VerticalAlignment="Center"/>
+                    <ComboBox x:Name="CmbCode" Width="200" DisplayMemberPath="Code"
+                              SelectionChanged="OnCodeChanged"
+                              ToolTip="Coefficients and threshold come from the selected code. Non-BCA values are indicative — verify."/>
+                    <TextBlock Text="limit" VerticalAlignment="Center" Margin="10,0,4,0"/>
+                    <TextBlock x:Name="LblThreshold" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6" VerticalAlignment="Center">
+                    <TextBlock Text="Glazing" Width="60" VerticalAlignment="Center"
+                               ToolTip="Fallback only — U-value and SHGC are read from each window's family when present."/>
+                    <ComboBox x:Name="CmbGlazing" Width="240" DisplayMemberPath="Name"
+                              ToolTip="Used only for windows that have no analytic thermal properties in the model."/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="Wall U" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtWallU" Text="2.0"/>
+                    <TextBlock Text="Roof U" VerticalAlignment="Center"/>
+                    <TextBox x:Name="TxtRoofU" Text="0.5"/>
+                    <TextBlock Text="W/m²K" VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Grid.Row="3" Header="Output">
+            <StackPanel>
+                <CheckBox x:Name="ChkOverlay" Content="Show red shadow overlay on glass at:" IsChecked="True" Margin="0,0,0,4"/>
+                <StackPanel Orientation="Horizontal" Margin="20,0,0,6" VerticalAlignment="Center">
+                    <ComboBox x:Name="CmbOverlayDate" Width="90" SelectedIndex="1">
+                        <ComboBoxItem Content="21 Mar" Tag="3"/>
+                        <ComboBoxItem Content="21 Jun" Tag="6"/>
+                        <ComboBoxItem Content="21 Dec" Tag="12"/>
+                    </ComboBox>
+                    <TextBox x:Name="TxtOverlayHour" Text="12" Margin="8,0,4,0"/>
+                    <TextBlock Text="h  (a single moment — areas for all hours go to the parameters/CSV)"
+                               VerticalAlignment="Center" Foreground="Gray" FontSize="10"/>
+                </StackPanel>
+                <CheckBox x:Name="ChkSweep" Margin="20,0,0,4"
+                          Content="Whole-day sweep: layered hourly shadows (selected windows, max 5)"
+                          ToolTip="Select up to 5 windows first. Draws the shadow at every hour, coloured blue→red, fanned off the glass."/>
+                <CheckBox x:Name="ChkWriteParams" Content="Write results to shared parameters" IsChecked="True" Margin="0,0,0,4"/>
+                <CheckBox x:Name="ChkCsv" Content="Export CSV to Desktop" IsChecked="True"/>
+                <CheckBox x:Name="ChkReport" Content="Generate compliance report (HTML, opens in browser)" IsChecked="True" Margin="0,4,0,0"/>
+            </StackPanel>
+        </GroupBox>
+
+        <TextBlock Grid.Row="4" TextWrapping="Wrap" Foreground="Gray" FontSize="11" VerticalAlignment="Bottom"
+                   Text="Note: BCA correction factors, the 50 W/m² threshold and glazing values are indicative — verify against the current code edition before submission."/>
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button x:Name="BtnRun" Content="Run" Width="90" Height="28" Margin="0,0,8,0" IsDefault="True" Click="OnRun"/>
+            <Button Content="Cancel" Width="90" Height="28" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

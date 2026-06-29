@@ -1,0 +1,22 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# NuGet
+*.nupkg
+packages/
+
+# Generated sample/report artifacts
+Sample_Report.pdf
+SolarShading_Report_*.html
+
+# OS
+Thumbs.db
+.DS_Store
