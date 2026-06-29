@@ -12,10 +12,11 @@ public static class ShadingFlag
     public const string Name = "SS_SHADING_DEVICE";
     private const string GroupName = "SolarShading";
 
+    // Categories a shading device can belong to. Walls are intentionally excluded — a wall is
+    // the host, not a sun-shade — so it can't be tagged by accident.
     public static readonly BuiltInCategory[] CandidateCategories =
     {
         BuiltInCategory.OST_GenericModel,
-        BuiltInCategory.OST_Walls,
         BuiltInCategory.OST_Roofs,
         BuiltInCategory.OST_Floors,
         BuiltInCategory.OST_StructuralColumns,

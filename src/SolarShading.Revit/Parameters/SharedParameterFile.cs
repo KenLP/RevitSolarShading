@@ -17,8 +17,10 @@ public static class SharedParameterFile
         string? path = app.SharedParametersFilename;
         if (string.IsNullOrEmpty(path) || !File.Exists(path))
         {
+            // A discoverable, stable location the user can find (and the parameters have fixed
+            // GUIDs, so the file can live anywhere). Documents\SolarShading.
             string dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SolarShading");
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SolarShading");
             Directory.CreateDirectory(dir);
             path = Path.Combine(dir, "SolarShading_SharedParameters.txt");
             if (!File.Exists(path))

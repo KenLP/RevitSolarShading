@@ -67,32 +67,58 @@ public static class RevitGeometryExtractor
         return faces.Count == 0 ? null : OccluderObject.FromFaces(faces);
     }
 
+    // A solid that, with the sun NORMAL to the window, already shadows this fraction of the
+    // glass is the window's own body/frame (it fills the opening), not a shading fin — exclude it.
+    private const double SelfBodyHeadOnFraction = 0.5;
+
     /// <summary>
-    /// Build a self-shading occluder from a window's OWN family geometry — the shading
-    /// fins/louvres modelled directly inside the window family. Only solids that protrude
-    /// beyond the receiver plane by more
-    /// than <paramref name="minProtrusionMeters"/> are kept, which excludes the in-plane
-    /// glass and flush frame (those would otherwise self-occlude the whole pane). Returns
-    /// null when the family has no protruding shading geometry.
+    /// Build a self-shading occluder from a window's OWN family geometry — shading fins/louvres
+    /// modelled directly inside the window family.
+    ///
+    /// The window's own frame/glass body fills the opening and would otherwise self-occlude the
+    /// whole pane at every sun angle. We separate the body from genuine shades with a head-on
+    /// test: project each solid with the sun NORMAL to the window. A real overhang/fin casts
+    /// almost nothing head-on (it only shades obliquely), whereas the body covers the opening.
+    /// Solids that cover more than half the glass head-on are dropped.
     /// </summary>
     public static OccluderObject? ToSelfShadingOccluder(
-        Element window, Plane3 receiver, double minProtrusionMeters = 0.1, Options? options = null)
+        Element window, WindowReceiver receiver, Options? options = null)
     {
+        Plane3 plane = receiver.Plane;
+        Clipper2Lib.PathsD windowPath = ToUvPath(receiver.Outline, plane);
+        double windowArea = PolygonClipper.Area(windowPath);
+        if (windowArea < 1e-9)
+            return null;
+
+        Vec3 headOnLight = -receiver.OutwardNormal; // sun directly in front of the glass
+
         var faces = new List<OccluderFace>();
         foreach (Solid solid in GetSolids(window, options))
         {
             var solidFaces = new List<OccluderFace>();
             AppendSolidFaces(solid, solidFaces);
+            if (solidFaces.Count == 0)
+                continue;
 
-            double maxProtrusion = double.MinValue;
-            foreach (OccluderFace f in solidFaces)
-                foreach (Vec3 v in f.Outer.Vertices)
-                    maxProtrusion = Math.Max(maxProtrusion, receiver.SignedDistance(v));
+            Clipper2Lib.PathsD footprint = ShadowProjector.ProjectFootprint(solidFaces, plane, headOnLight);
+            double headOnFraction = PolygonClipper.Area(PolygonClipper.Intersect(footprint, windowPath)) / windowArea;
 
-            if (maxProtrusion > minProtrusionMeters)
-                faces.AddRange(solidFaces);
+            if (headOnFraction < SelfBodyHeadOnFraction)
+                faces.AddRange(solidFaces); // a genuine shade, not the window body
         }
         return faces.Count == 0 ? null : OccluderObject.FromFaces(faces);
+    }
+
+    private static Clipper2Lib.PathsD ToUvPath(Polygon3 loop, Plane3 plane)
+    {
+        var path = new Clipper2Lib.PathD(loop.Vertices.Count);
+        foreach (Vec3 v in loop.Vertices)
+        {
+            (double u, double w) = plane.WorldToUv(v);
+            path.Add(new Clipper2Lib.PointD(u, w));
+        }
+        var paths = new Clipper2Lib.PathsD { path };
+        return paths;
     }
 
     public static void AppendSolidFaces(Solid solid, List<OccluderFace> faces)
