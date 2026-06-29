@@ -1,6 +1,7 @@
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using SolarShading.Revit.Geometry;
 using SolarShading.Revit.Parameters;
 
 namespace SolarShading.Revit.Commands;
@@ -46,8 +47,15 @@ public sealed class GetShadingDevicesCommand : IExternalCommand
             case TaskDialogResult.CommandLink2:
                 return SetFlag(doc, app, uidoc, false);
             case TaskDialogResult.CommandLink3:
+                using (var t = new Transaction(doc, "Highlight shading devices"))
+                {
+                    t.Start();
+                    ElementColorizer.Apply(doc, doc.ActiveView, tagged, ElementColorizer.ShadingDevice);
+                    t.Commit();
+                }
                 uidoc.Selection.SetElementIds(tagged);
-                TaskDialog.Show("Shading Devices", $"Selected {tagged.Count} tagged shading device(s).");
+                TaskDialog.Show("Shading Devices",
+                    $"Selected and highlighted {tagged.Count} tagged shading device(s) in orange.");
                 return Result.Succeeded;
             default:
                 return Result.Cancelled;
@@ -64,7 +72,7 @@ public sealed class GetShadingDevicesCommand : IExternalCommand
             return Result.Cancelled;
         }
 
-        int changed = 0;
+        var changed = new List<ElementId>();
         using (var t = new Transaction(doc, value ? "Tag shading devices" : "Untag shading devices"))
         {
             t.Start();
@@ -79,13 +87,15 @@ public sealed class GetShadingDevicesCommand : IExternalCommand
                 if (e?.LookupParameter(ShadingFlag.Name) == null)
                     continue;
                 ShadingFlag.Set(e, value);
-                changed++;
+                changed.Add(id);
             }
+            // Colour tagged devices orange in the active view; clear the override when untagging.
+            ElementColorizer.Apply(doc, doc.ActiveView, changed, value ? ElementColorizer.ShadingDevice : null);
             t.Commit();
         }
 
         TaskDialog.Show("Shading Devices",
-            $"{(value ? "Tagged" : "Untagged")} {changed} element(s).");
+            $"{(value ? "Tagged and highlighted" : "Untagged and cleared")} {changed.Count} element(s).");
         return Result.Succeeded;
     }
 }
