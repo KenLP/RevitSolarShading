@@ -57,7 +57,7 @@ public sealed class ShadingOnWindowsCommand : IExternalCommand
         }
 
         if (summary.Envelope != null)
-            new EttvResultWindow(summary.Envelope, summary.Facades).ShowDialog();
+            new EttvResultWindow(summary.Envelope, summary.Facades, summary.WindowsAnalyzed).ShowDialog();
         return Result.Succeeded;
     }
 }

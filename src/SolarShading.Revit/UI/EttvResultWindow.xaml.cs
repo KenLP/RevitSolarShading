@@ -15,9 +15,11 @@ public partial class EttvResultWindow : Window
         public required double Ettv { get; init; }
     }
 
-    public EttvResultWindow(EnvelopeEttvResult envelope, IReadOnlyList<FacadeData> facades)
+    public EttvResultWindow(EnvelopeEttvResult envelope, IReadOnlyList<FacadeData> facades, int windowsAnalyzed = 0)
     {
         InitializeComponent();
+        if (windowsAnalyzed > 0)
+            Title = $"ETTV Results — {windowsAnalyzed} windows analyzed";
 
         var facadeByOrientation = facades.ToDictionary(f => f.Orientation);
         var rows = envelope.Facades.Select(f =>

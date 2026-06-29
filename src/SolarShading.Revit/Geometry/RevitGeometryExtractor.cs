@@ -18,9 +18,9 @@ public static class RevitGeometryExtractor
         IncludeNonVisibleObjects = false,
     };
 
-    // Coarse level-of-detail for triangulating curved faces (T6): 0 = coarsest, 1 = finest.
-    // Shadow areas tolerate a coarse mesh; fewer triangles means much less clipping work.
-    private const double CurvedFaceLod = 0.25;
+    // Level-of-detail for triangulating curved faces (organic/freeform shades): 0 = coarsest,
+    // 1 = finest. Raised for smoother organic shadow outlines (more triangles, slightly slower).
+    private const double CurvedFaceLod = 0.6;
 
     /// <summary>All solids of an element, recursing through geometry instances (world coords).</summary>
     public static IReadOnlyList<Solid> GetSolids(Element element, Options? options = null)
