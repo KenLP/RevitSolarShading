@@ -67,12 +67,65 @@ public static class ShadowProjector
     /// </summary>
     private static PathD? ProjectPositiveLoop(Polygon3 loop, Plane3 receiver, Vec3 lightDir)
     {
-        PathD? projected = ProjectLoop(loop, receiver, lightDir);
+        // Only geometry BETWEEN the sun and the receiver casts a shadow onto it. Clip the loop
+        // to the sun-side half-space first: without this, occluder geometry behind the receiver
+        // plane (e.g. a deep fin that straddles the glass) projects forward onto the receiver
+        // and paints a spurious shadow. The sun is upstream of the light direction, so a point p
+        // is on the sun side when (p − origin)·lightDir ≤ 0.
+        Polygon3? front = ClipToSunSide(loop, receiver, lightDir);
+        if (front is null)
+            return null;
+
+        PathD? projected = ProjectLoop(front, receiver, lightDir);
         if (projected is not { Count: >= 3 })
             return null;
         if (Clipper.Area(projected) < 0)
             projected.Reverse();
         return projected;
+    }
+
+    /// <summary>
+    /// Sutherland–Hodgman clip of a 3D loop against the receiver plane, keeping the half on the
+    /// sun side (the side the light comes from). Returns null if nothing remains. Geometry behind
+    /// the receiver cannot shadow it; clipping here also guarantees a forward (t ≥ 0) projection.
+    /// </summary>
+    private static Polygon3? ClipToSunSide(Polygon3 loop, Plane3 receiver, Vec3 lightDir)
+    {
+        IReadOnlyList<Vec3> v = loop.Vertices;
+        int n = v.Count;
+        if (n < 3)
+            return null;
+
+        const double eps = 1e-9;
+        var output = new List<Vec3>(n + 4);
+        for (int i = 0; i < n; i++)
+        {
+            Vec3 a = v[(i - 1 + n) % n];
+            Vec3 b = v[i];
+            double da = (a - receiver.Origin).Dot(lightDir); // ≤ 0 ⇒ sun side
+            double db = (b - receiver.Origin).Dot(lightDir);
+            bool aIn = da <= eps;
+            bool bIn = db <= eps;
+
+            if (bIn)
+            {
+                if (!aIn)
+                    output.Add(Intersect(a, b, da, db));
+                output.Add(b);
+            }
+            else if (aIn)
+            {
+                output.Add(Intersect(a, b, da, db));
+            }
+        }
+        return output.Count >= 3 ? new Polygon3(output) : null;
+
+        static Vec3 Intersect(Vec3 a, Vec3 b, double da, double db)
+        {
+            double denom = da - db;
+            double t = Math.Abs(denom) < 1e-15 ? 0.0 : da / denom;
+            return a + (b - a) * t;
+        }
     }
 
     public static PathsD ProjectFootprint(

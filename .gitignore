@@ -17,6 +17,11 @@ packages/
 Sample_Report.pdf
 SolarShading_Report_*.html
 
+# Proprietary closed-source plugin (distributed alongside, never committed)
+SolarShading.Private.dll
+SolarShading.Private.pdb
+src/SolarShading.Private/
+
 # OS
 Thumbs.db
 .DS_Store

@@ -44,7 +44,8 @@ in the .addin or place the DLLs alongside it).
    the NREL SPA reference case. Computed analytically — no `SunAndShadowSettings` and no
    per-hour Revit transaction (a major performance win).
 2. **Shadow by silhouette projection + 2D clipping** (`ShadowProjector` + `PolygonClipper`)
-   — each occluder face is projected along the sun ray onto the receiver plane, unioned,
+   — each occluder face is clipped to the **sun side of the receiver plane** (geometry behind
+   the glass can't shadow it), projected along the sun ray onto the receiver plane, unioned,
    and intersected with the window outline using **Clipper2** (robust Weiler–Atherton).
    Exact areas via shoelace. Replaces fragile 3D boolean solids + the tessellation retry DLL.
 3. **ETTV / SC** (`BcaEttv`, `ShadingCoefficient`) — solar-weighted effective external
@@ -58,16 +59,16 @@ dotnet test
 
 ## Status
 
-- ✅ Core engine (solar position, silhouette projection, 2D clipping, holes, ETTV, clear-sky) — **28 tests pass**.
+- ✅ Core engine (solar position, silhouette projection, 2D clipping, holes, ETTV, clear-sky) — **41 tests pass**.
 - ✅ Solar engine validated from first principles across hemispheres/seasons + the NREL SPA reference point.
 - ✅ Revit add-in builds against RevitAPI 2026 (.NET 8) and 2027 (.NET 10).
-- ✅ Three commands: tag shading devices, shading-on-windows (SC2 + ETTV pass/fail + CSV), building-shadow-on-ground.
+- ✅ Three commands: tag shading devices, shading-on-windows (SC2 + ETTV pass/fail + CSV; red overlay re-drawn each run), building-shadow-on-ground (Mass selection, date/time picker).
 - ✅ **WPF UI**: configuration dialog (dates, hours, glazing, threshold, outputs) + per-orientation ETTV results table.
 - ✅ **Deploy script** (`deploy/Deploy.ps1`) installs into `%AppData%\...\Addins\<ver>\`.
 - ✅ SC2 weighted by **ASHRAE clear-sky** incident irradiance; window outline from the **rough opening** (RevitAPIIFC) with largest-face fallback.
 - ✅ **Per-element glazing**: U-value and SHGC→SC1 read from each window's family/type, area-weighted per orientation (dialog glazing is only a fallback).
 - ✅ User guide: [USER_GUIDE.md](USER_GUIDE.md) / [USER_GUIDE.pdf](USER_GUIDE.pdf).
-- ✅ **Whole-model performance (T1–T6)**: occluder geometry cache (T1); 3-phase **parallel** analysis — Revit-thread extract → parallel pure-maths → single write transaction (T2); back-face cull (T3); polygon simplification (T4); bounding-box / wrong-side occluder culling (T5); coarse curved-face tessellation (T6). 31 tests pass; the fast path is proven to match the plain path.
+- ✅ **Whole-model performance (T1–T6)**: occluder geometry cache (T1); 3-phase **parallel** analysis — Revit-thread extract → parallel pure-maths → single write transaction (T2); back-face cull (T3); polygon simplification (T4); bounding-box / wrong-side occluder culling (T5); coarse curved-face tessellation (T6). 41 tests pass; the fast path is proven to match the plain path.
 
 ## Next
 

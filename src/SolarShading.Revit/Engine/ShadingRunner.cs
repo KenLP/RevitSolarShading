@@ -109,9 +109,13 @@ public static class ShadingRunner
                     WriteResults(doc, a);
             }
             if (config.ShowShadowOverlay)
+            {
+                // Remove the previous run's overlays so layers don't pile up and overlap.
+                ShadowVisualizer.ClearOverlays(doc, ShadowVisualizer.WindowShadowTag);
                 overlaysDrawn = config.WholeDaySweep
                     ? DrawDaySweep(doc, engine, windows, nearbyByWindow, preSelected, config, tz)
                     : DrawOverlay(doc, engine, windows, nearbyByWindow, overlayTime);
+            }
             t.Commit();
         }
 
@@ -193,7 +197,8 @@ public static class ShadingRunner
             if (region is { } r && r.Region.Count > 0)
             {
                 DirectShape? ds = ShadowVisualizer.CreateOverlay(
-                    doc, r.Receiver.Plane, r.Region, BuiltInCategory.OST_GenericModel);
+                    doc, r.Receiver.Plane, r.Region, BuiltInCategory.OST_GenericModel,
+                    ShadowVisualizer.DefaultGapMeters, ShadowVisualizer.WindowShadowTag);
                 if (ds != null)
                     created.Add(ds.Id);
             }
@@ -227,7 +232,8 @@ public static class ShadingRunner
 
                 double gap = ShadowVisualizer.DefaultGapMeters + (h - cfg.StartHour) * 0.05;
                 DirectShape? ds = ShadowVisualizer.CreateOverlay(
-                    doc, r.Receiver.Plane, r.Region, BuiltInCategory.OST_GenericModel, gap);
+                    doc, r.Receiver.Plane, r.Region, BuiltInCategory.OST_GenericModel, gap,
+                    ShadowVisualizer.WindowShadowTag);
                 if (ds == null)
                     continue;
 

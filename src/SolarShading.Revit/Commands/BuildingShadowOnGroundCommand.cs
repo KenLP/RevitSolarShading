@@ -5,14 +5,14 @@ using SolarShading.Core.Geometry;
 using SolarShading.Revit.Engine;
 using SolarShading.Revit.Geometry;
 using SolarShading.Revit.Solar;
+using SolarShading.Revit.UI;
 using Units = SolarShading.Revit.Geometry.Units;
 
 namespace SolarShading.Revit.Commands;
 
 /// <summary>
-/// Projects the selected building element(s) onto the ground plane for the current
-/// site sun (today, 12:00 local by default), draws the cast shadow as a DirectShape and
-/// reports its area. Demonstrates the same core engine on the "building-on-ground" case.
+/// Projects the selected Mass element(s) onto the ground plane for a chosen date and time,
+/// draws the cast shadow as a coloured DirectShape and reports its area.
 /// </summary>
 [Transaction(TransactionMode.Manual)]
 public sealed class BuildingShadowOnGroundCommand : IExternalCommand
@@ -22,28 +22,36 @@ public sealed class BuildingShadowOnGroundCommand : IExternalCommand
         UIDocument uidoc = commandData.Application.ActiveUIDocument;
         Document doc = uidoc.Document;
 
-        ICollection<ElementId> selected = uidoc.Selection.GetElementIds();
-        if (selected.Count == 0)
+        // Restrict to Mass elements — keeps the building-shadow tool simple and predictable.
+        var masses = new List<Element>();
+        foreach (ElementId id in uidoc.Selection.GetElementIds())
         {
-            TaskDialog.Show("Solar Shading", "Select the building element(s) to cast a ground shadow, then run again.");
+            Element e = doc.GetElement(id);
+            if (e?.Category?.BuiltInCategory == BuiltInCategory.OST_Mass)
+                masses.Add(e);
+        }
+        if (masses.Count == 0)
+        {
+            TaskDialog.Show("Solar Shading", "Select one or more Mass elements, then run again.");
             return Result.Cancelled;
         }
+
+        var dialog = new BuildingShadowWindow();
+        if (dialog.ShowDialog() != true)
+            return Result.Cancelled;
 
         // Collect occluder faces and the combined bounding box of the selection.
         var occluders = new List<OccluderFace>();
         BoundingBoxXYZ? combined = null;
-        foreach (ElementId id in selected)
+        foreach (Element e in masses)
         {
-            Element e = doc.GetElement(id);
-            if (e == null)
-                continue;
             occluders.AddRange(RevitGeometryExtractor.ToOccluderFaces(e));
             combined = Union(combined, e.get_BoundingBox(null));
         }
 
         if (occluders.Count == 0 || combined == null)
         {
-            TaskDialog.Show("Solar Shading", "Selected element(s) have no usable solid geometry.");
+            TaskDialog.Show("Solar Shading", "Selected mass(es) have no usable solid geometry.");
             return Result.Cancelled;
         }
 
@@ -63,13 +71,14 @@ public sealed class BuildingShadowOnGroundCommand : IExternalCommand
             new Vec3(cx + half, cy + half, groundZ),
             new Vec3(cx - half, cy + half, groundZ));
 
-        ModelSun sun = new RevitShadeEngine(doc).SunAt(
-            new DateTimeOffset(DateTime.Today.Year, DateTime.Today.Month, DateTime.Today.Day, 12, 0, 0,
-                TimeSpan.FromHours(doc.SiteLocation.TimeZone)));
+        var instant = new DateTimeOffset(dialog.Date.Year, dialog.Date.Month, dialog.Date.Day,
+            dialog.Hour, 0, 0, TimeSpan.FromHours(doc.SiteLocation.TimeZone));
+        ModelSun sun = new RevitShadeEngine(doc).SunAt(instant);
 
         if (!sun.IsDaytime)
         {
-            TaskDialog.Show("Solar Shading", "The sun is below the horizon at the selected time.");
+            TaskDialog.Show("Solar Shading",
+                $"The sun is below the horizon at {instant:dd MMM} {dialog.Hour:00}:00.");
             return Result.Cancelled;
         }
 
@@ -79,12 +88,19 @@ public sealed class BuildingShadowOnGroundCommand : IExternalCommand
         using (var t = new Transaction(doc, "Building shadow on ground"))
         {
             t.Start();
-            ShadowVisualizer.CreateOverlay(doc, ground, region, BuiltInCategory.OST_GenericModel);
+            // Remove a previous building-shadow overlay so re-runs don't stack.
+            ShadowVisualizer.ClearOverlays(doc, ShadowVisualizer.BuildingShadowTag);
+            DirectShape? ds = ShadowVisualizer.CreateOverlay(
+                doc, ground, region, BuiltInCategory.OST_GenericModel,
+                ShadowVisualizer.DefaultGapMeters, ShadowVisualizer.BuildingShadowTag);
+            if (ds != null)
+                ElementColorizer.Apply(doc, doc.ActiveView, new[] { ds.Id }, ElementColorizer.ShadingDevice);
             t.Commit();
         }
 
         TaskDialog.Show("Solar Shading",
-            $"Sun altitude: {sun.AltitudeDeg:0.0}°\nCast shadow area on ground: {result.ShadedAreaM2:0.0} m²");
+            $"{instant:dd MMM} {dialog.Hour:00}:00 — sun altitude {sun.AltitudeDeg:0.0}°\n" +
+            $"Cast shadow area on ground: {result.ShadedAreaM2:0.0} m²");
         return Result.Succeeded;
     }
 

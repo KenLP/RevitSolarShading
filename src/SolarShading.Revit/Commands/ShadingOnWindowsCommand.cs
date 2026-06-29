@@ -1,3 +1,4 @@
+using System.IO;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -34,9 +35,9 @@ public sealed class ShadingOnWindowsCommand : IExternalCommand
             return Result.Cancelled;
         }
 
-        string csvNote = summary.CsvPath != null ? $"\nCSV: {summary.CsvPath}" : "";
+        string csvNote = summary.CsvPath != null ? $"\nCSV: {Path.GetFileName(summary.CsvPath)} (on Desktop)" : "";
         if (summary.ReportPath != null)
-            csvNote += $"\nReport: {summary.ReportPath}";
+            csvNote += $"\nReport: {Path.GetFileName(summary.ReportPath)} (on Desktop)";
         if (config.ShowShadowOverlay)
         {
             string date = summary.OverlayTime.ToString("dd MMM");

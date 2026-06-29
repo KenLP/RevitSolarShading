@@ -111,6 +111,10 @@ public partial class ShadingConfigWindow : Window
         Config.ExportCsv = ChkCsv.IsChecked == true;
         Config.GenerateReport = ChkReport.IsChecked == true;
 
+        // Keep the overlay date within the analysed dates so the red overlay matches the run.
+        if (!Config.Months().Contains(Config.OverlayMonth))
+            Config.OverlayMonth = Config.Months().First();
+
         DialogResult = true;
     }
 

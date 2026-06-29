@@ -41,7 +41,7 @@ public sealed class App : IExternalApplication
             "SS_BuildingShadow", "Building Shadow\non Ground", asm,
             "SolarShading.Revit.Commands.BuildingShadowOnGroundCommand")
         {
-            ToolTip = "Cast the selected building's shadow onto the ground plane.",
+            ToolTip = "Cast the selected Mass element(s)' shadow onto the ground at a chosen date/time.",
         });
 
         // Headless trigger watcher (no-op unless a trigger file is queued) — enables

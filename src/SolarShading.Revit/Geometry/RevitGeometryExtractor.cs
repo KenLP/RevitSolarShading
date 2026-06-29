@@ -160,19 +160,7 @@ public static class RevitGeometryExtractor
     }
 
     private static void AppendTessellatedFace(Face face, List<OccluderFace> faces)
-    {
-        Mesh mesh = face.Triangulate(CurvedFaceLod);
-        for (int i = 0; i < mesh.NumTriangles; i++)
-        {
-            MeshTriangle t = mesh.get_Triangle(i);
-            Vec3 a = Units.ToVec3(t.get_Vertex(0));
-            Vec3 b = Units.ToVec3(t.get_Vertex(1));
-            Vec3 c = Units.ToVec3(t.get_Vertex(2));
-            Vec3 normal = (b - a).Cross(c - a);
-            Vec3? n = normal.Length > 1e-12 ? normal.Normalized() : null;
-            faces.Add(new OccluderFace(new Polygon3(a, b, c), null, n));
-        }
-    }
+        => Tessellation.Active.Tessellate(face, CurvedFaceLod, faces);
 
     private static Polygon3? LoopToPolygon(CurveLoop loop)
     {

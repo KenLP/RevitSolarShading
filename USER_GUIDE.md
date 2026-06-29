@@ -56,9 +56,10 @@ the DLL is unsigned. Click **Always Load**. A **Solar Shading** ribbon tab will 
    (Window area, WWR %, SC2, ETTV) and the envelope **ETTV — PASS / FAIL**.
 
 ### Step 3 — Building shadow on ground (optional)
-1. Select the building element(s) (mass, walls, etc.).
-2. **Solar Shading → Building Shadow on Ground**.
-   Draws the cast shadow as a DirectShape and reports its area (sun at 12:00 today).
+1. Select one or more **Mass** elements.
+2. **Solar Shading → Building Shadow on Ground**, then pick a **date and hour**.
+   Draws the cast shadow as a coloured DirectShape on the ground and reports its area.
+   Re-running replaces the previous building-shadow overlay.
 
 ---
 
