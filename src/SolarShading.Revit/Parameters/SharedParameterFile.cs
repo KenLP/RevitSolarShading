@@ -15,10 +15,13 @@ public static class SharedParameterFile
     public static DefinitionFile Ensure(Application app)
     {
         string? path = app.SharedParametersFilename;
-        if (string.IsNullOrEmpty(path) || !File.Exists(path))
+        // Migrate our own auto-created file (or a missing/unset file) to a discoverable,
+        // stable Documents\SolarShading location; leave a user's own custom file alone.
+        bool isOurs = !string.IsNullOrEmpty(path) &&
+            path.Replace('/', '\\').EndsWith(@"\SolarShading\SolarShading_SharedParameters.txt",
+                StringComparison.OrdinalIgnoreCase);
+        if (string.IsNullOrEmpty(path) || !File.Exists(path) || isOurs)
         {
-            // A discoverable, stable location the user can find (and the parameters have fixed
-            // GUIDs, so the file can live anywhere). Documents\SolarShading.
             string dir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SolarShading");
             Directory.CreateDirectory(dir);

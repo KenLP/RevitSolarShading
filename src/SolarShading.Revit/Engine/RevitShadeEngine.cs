@@ -77,7 +77,7 @@ public sealed class RevitShadeEngine
 
             var occluders = new List<OccluderObject>(_cache.Get(input.Devices));
             // Shading fins modelled inside the window family (self-shading).
-            OccluderObject? self = RevitGeometryExtractor.ToSelfShadingOccluder(input.Window, receiver);
+            OccluderObject? self = RevitGeometryExtractor.ToSelfShadingOccluder(input.Window);
             if (self != null)
                 occluders.Add(self);
 
@@ -114,7 +114,7 @@ public sealed class RevitShadeEngine
         var faces = new List<OccluderFace>();
         foreach (OccluderObject occ in _cache.Get(shadingDevices))
             faces.AddRange(occ.Faces);
-        OccluderObject? self = RevitGeometryExtractor.ToSelfShadingOccluder(window, receiver);
+        OccluderObject? self = RevitGeometryExtractor.ToSelfShadingOccluder(window);
         if (self != null)
             faces.AddRange(self.Faces);
 

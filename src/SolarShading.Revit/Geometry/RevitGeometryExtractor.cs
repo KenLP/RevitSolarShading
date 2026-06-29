@@ -67,58 +67,43 @@ public static class RevitGeometryExtractor
         return faces.Count == 0 ? null : OccluderObject.FromFaces(faces);
     }
 
-    // A solid that, with the sun NORMAL to the window, already shadows this fraction of the
-    // glass is the window's own body/frame (it fills the opening), not a shading fin — exclude it.
-    private const double SelfBodyHeadOnFraction = 0.5;
-
     /// <summary>
     /// Build a self-shading occluder from a window's OWN family geometry — shading fins/louvres
     /// modelled directly inside the window family.
     ///
-    /// The window's own frame/glass body fills the opening and would otherwise self-occlude the
-    /// whole pane at every sun angle. We separate the body from genuine shades with a head-on
-    /// test: project each solid with the sun NORMAL to the window. A real overhang/fin casts
-    /// almost nothing head-on (it only shades obliquely), whereas the body covers the opening.
-    /// Solids that cover more than half the glass head-on are dropped.
+    /// The shade geometry is isolated by sub-category: glass and frame are drawn on named
+    /// sub-categories (so their solids carry a GraphicsStyle), while the shading geometry is
+    /// drawn WITHOUT a sub-category (no GraphicsStyle). Keeping only the no-sub-category solids
+    /// therefore picks up the shades and excludes the window body — which would otherwise
+    /// self-occlude the whole pane. (Families that put their shades on a sub-category won't be
+    /// auto-detected; tag such shades as separate shading devices instead.)
     /// </summary>
-    public static OccluderObject? ToSelfShadingOccluder(
-        Element window, WindowReceiver receiver, Options? options = null)
+    public static OccluderObject? ToSelfShadingOccluder(Element window, Options? options = null)
     {
-        Plane3 plane = receiver.Plane;
-        Clipper2Lib.PathsD windowPath = ToUvPath(receiver.Outline, plane);
-        double windowArea = PolygonClipper.Area(windowPath);
-        if (windowArea < 1e-9)
-            return null;
-
-        Vec3 headOnLight = -receiver.OutwardNormal; // sun directly in front of the glass
-
+        Document doc = window.Document;
         var faces = new List<OccluderFace>();
-        foreach (Solid solid in GetSolids(window, options))
-        {
-            var solidFaces = new List<OccluderFace>();
-            AppendSolidFaces(solid, solidFaces);
-            if (solidFaces.Count == 0)
-                continue;
-
-            Clipper2Lib.PathsD footprint = ShadowProjector.ProjectFootprint(solidFaces, plane, headOnLight);
-            double headOnFraction = PolygonClipper.Area(PolygonClipper.Intersect(footprint, windowPath)) / windowArea;
-
-            if (headOnFraction < SelfBodyHeadOnFraction)
-                faces.AddRange(solidFaces); // a genuine shade, not the window body
-        }
+        GeometryElement? geo = window.get_Geometry(options ?? DefaultOptions);
+        if (geo != null)
+            CollectShadeFaces(geo, doc, faces);
         return faces.Count == 0 ? null : OccluderObject.FromFaces(faces);
     }
 
-    private static Clipper2Lib.PathsD ToUvPath(Polygon3 loop, Plane3 plane)
+    private static void CollectShadeFaces(GeometryElement geo, Document doc, List<OccluderFace> faces)
     {
-        var path = new Clipper2Lib.PathD(loop.Vertices.Count);
-        foreach (Vec3 v in loop.Vertices)
+        foreach (GeometryObject obj in geo)
         {
-            (double u, double w) = plane.WorldToUv(v);
-            path.Add(new Clipper2Lib.PointD(u, w));
+            switch (obj)
+            {
+                case Solid s when s.Volume > 1e-6 && s.Faces.Size > 0:
+                    // No GraphicsStyle (no sub-category) == shading geometry, not glass/frame.
+                    if (doc.GetElement(s.GraphicsStyleId) is not GraphicsStyle)
+                        AppendSolidFaces(s, faces);
+                    break;
+                case GeometryInstance gi:
+                    CollectShadeFaces(gi.GetInstanceGeometry(), doc, faces);
+                    break;
+            }
         }
-        var paths = new Clipper2Lib.PathsD { path };
-        return paths;
     }
 
     public static void AppendSolidFaces(Solid solid, List<OccluderFace> faces)

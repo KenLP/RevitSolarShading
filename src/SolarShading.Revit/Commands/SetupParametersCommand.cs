@@ -28,12 +28,17 @@ public sealed class SetupParametersCommand : IExternalCommand
             t.Commit();
         }
 
-        TaskDialog.Show("Solar Shading",
-            "Shared parameters are ready:\n\n" +
-            "• SS_SHADING_DEVICE (Yes/No) — bound to model categories (walls, generic models, framing…)\n" +
-            "• SS_EXTERNAL_SC2 (number) — bound to Windows\n" +
-            "• SS_SHADED_MARCH / JUNE / DEC (text) — bound to Windows\n\n" +
-            $"Shared parameter file:\n{app.SharedParametersFilename}");
+        var td = new TaskDialog("Solar Shading")
+        {
+            MainInstruction = "Shared parameters are ready",
+            MainContent =
+                "• SS_SHADING_DEVICE (Yes/No) — generic models, roofs, framing, mullions, columns…\n" +
+                "• SS_EXTERNAL_SC2 (number) — Windows\n" +
+                "• SS_SHADED_MARCH / JUNE / DEC (text) — Windows",
+            ExpandedContent = $"Shared parameter file:\n{app.SharedParametersFilename}",
+            AllowCancellation = true,
+        };
+        td.Show();
         return Result.Succeeded;
     }
 }
