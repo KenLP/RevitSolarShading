@@ -30,7 +30,7 @@ tests/SolarShading.Core.Tests   xUnit — solar position vs NREL SPA reference +
 ### Build
 
 ```
-dotnet test                                                  # Core + 20 unit tests
+dotnet test                                                  # Core — 41 unit tests
 dotnet build src/SolarShading.Revit -p:RevitVersion=2026     # add-in for Revit 2025/2026 (.NET 8)
 dotnet build src/SolarShading.Revit -p:RevitVersion=2027     # add-in for Revit 2027 (.NET 10)
 ```
@@ -69,10 +69,11 @@ dotnet test
 - ✅ **Per-element glazing**: U-value and SHGC→SC1 read from each window's family/type, area-weighted per orientation (dialog glazing is only a fallback).
 - ✅ User guide: [USER_GUIDE.md](USER_GUIDE.md) / [USER_GUIDE.pdf](USER_GUIDE.pdf).
 - ✅ **Whole-model performance (T1–T6)**: occluder geometry cache (T1); 3-phase **parallel** analysis — Revit-thread extract → parallel pure-maths → single write transaction (T2); back-face cull (T3); polygon simplification (T4); bounding-box / wrong-side occluder culling (T5); coarse curved-face tessellation (T6). 41 tests pass; the fast path is proven to match the plain path.
+- ✅ **Validated in Revit**: run on a real multi-storey model (Revit 2026) — shading devices tagged, SC2 / ETTV written to shared parameters, per-window red overlays and the mass building-shadow verified live. Occluder geometry behind the glass is clipped out so deep fins no longer paint spurious shadows.
+- ✅ **Pluggable tessellation seam** (`ITessellator`): curved / organic faces tessellate through the Revit API by default; dropping an optional `SolarShading.Private.dll` next to the add-in transparently swaps in a proprietary tessellator — the DLL is never part of this repository.
 
 ## Next
 
-- **In-Revit validation**: load the add-in and run on a real model (cannot be done headless here).
 - Optional NREL SPA / Grena behind `ISolarPositionAlgorithm` (NOAA is already < 0.3° of SPA — ample for shadow geometry).
-- EPW/measured irradiance instead of the clear-sky proxy; per-element glazing/U-value instead of one default.
+- EPW / measured irradiance instead of the clear-sky proxy.
 - Verify regulatory constants (BCA correction factors, ETTV threshold) against the current edition.

@@ -70,7 +70,9 @@ the DLL is unsigned. Click **Always Load**. A **Solar Shading** ribbon tab will 
 | External shading coefficient | Window shared parameter **`SS_EXTERNAL_SC2`** |
 | Hourly shaded area (m²) per date | **`SS_SHADED_MARCH` / `SS_SHADED_JUNE` / `SS_SHADED_DEC`** (semicolon-separated, one value per hour, `NA` when the window doesn't face the sun) |
 | Full hourly table | **CSV on your Desktop** — `SolarShading_YYYYMMDD_HHmmss.csv` |
+| Printable compliance report | **HTML on your Desktop** — `SolarShading_Report_YYYYMMDD_HHmmss.html` (opens automatically when enabled) |
 | Envelope ETTV + pass/fail | **ETTV Results** window |
+| Shadow preview | Red **overlay** on each window (re-drawn each run, never stacked) |
 
 You can schedule the `SS_*` parameters in Revit (they are bound to the Windows category).
 

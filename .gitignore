@@ -17,6 +17,9 @@ packages/
 Sample_Report.pdf
 SolarShading_Report_*.html
 
+# Background research notes (not part of the published product)
+Shading Computation research.md
+
 # Proprietary closed-source plugin (distributed alongside, never committed)
 SolarShading.Private.dll
 SolarShading.Private.pdb
