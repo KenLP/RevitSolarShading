@@ -47,7 +47,7 @@ in the .addin or place the DLLs alongside it).
    — each occluder face is clipped to the **sun side of the receiver plane** (geometry behind
    the glass can't shadow it), projected along the sun ray onto the receiver plane, unioned,
    and intersected with the window outline using **Clipper2** (robust Weiler–Atherton).
-   Exact areas via shoelace. Replaces fragile 3D boolean solids + the tessellation retry DLL.
+   Exact areas via shoelace. Replaces fragile 3D boolean shadow solids.
 3. **ETTV / SC** (`BcaEttv`, `ShadingCoefficient`) — solar-weighted effective external
    shading coefficient (SC2) feeds the Singapore BCA ETTV formula.
 
@@ -70,7 +70,7 @@ dotnet test
 - ✅ User guide: [USER_GUIDE.md](USER_GUIDE.md) / [USER_GUIDE.pdf](USER_GUIDE.pdf).
 - ✅ **Whole-model performance (T1–T6)**: occluder geometry cache (T1); 3-phase **parallel** analysis — Revit-thread extract → parallel pure-maths → single write transaction (T2); back-face cull (T3); polygon simplification (T4); bounding-box / wrong-side occluder culling (T5); coarse curved-face tessellation (T6). 41 tests pass; the fast path is proven to match the plain path.
 - ✅ **Validated in Revit**: run on a real multi-storey model (Revit 2026) — shading devices tagged, SC2 / ETTV written to shared parameters, per-window red overlays and the mass building-shadow verified live. Occluder geometry behind the glass is clipped out so deep fins no longer paint spurious shadows.
-- ✅ **Pluggable tessellation seam** (`ITessellator`): curved / organic faces tessellate through the Revit API by default; dropping an optional `SolarShading.Private.dll` next to the add-in transparently swaps in a proprietary tessellator — the DLL is never part of this repository.
+- ✅ **Extensible tessellation** (`ITessellator`): curved / organic shading faces tessellate through the Revit API out of the box, and the same seam lets anyone plug in a custom tessellator as a drop-in assembly.
 
 ## Next
 

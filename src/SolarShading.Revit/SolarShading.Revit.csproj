@@ -51,4 +51,11 @@
     <ProjectReference Include="..\SolarShading.Core\SolarShading.Core.csproj" />
   </ItemGroup>
 
+  <!-- Ribbon button icons: embedded so they travel inside the add-in DLL
+       (resource name: SolarShading.Revit.Resources.<file>). -->
+  <ItemGroup>
+    <None Remove="Resources\*.png" />
+    <EmbeddedResource Include="Resources\*.png" />
+  </ItemGroup>
+
 </Project>
