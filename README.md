@@ -112,3 +112,17 @@ dotnet test
 - Optional NREL SPA / Grena behind `ISolarPositionAlgorithm` (NOAA is already < 0.3° of SPA — ample for shadow geometry).
 - EPW / measured irradiance instead of the clear-sky proxy.
 - Verify regulatory constants (BCA correction factors, ETTV threshold) against the current edition.
+
+## Contributing
+
+Issues and pull requests are welcome — bug reports from real models are especially useful.
+Please run `dotnet test` before opening a PR.
+
+## License
+
+[MIT](LICENSE) — free to use, modify and redistribute, including commercially.
+
+Third-party: [Clipper2](https://www.angusj.com/clipper2/Docs/Overview.htm) by Angus Johnson,
+[Boost Software License 1.0](https://www.boost.org/LICENSE_1_0.txt) (redistributed as
+`Clipper2Lib.dll`). Revit and the Revit API are trademarks of Autodesk, Inc.; this project is
+not affiliated with or endorsed by Autodesk.

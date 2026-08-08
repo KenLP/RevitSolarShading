@@ -68,8 +68,11 @@ if ($built.Count -eq 0) { throw "No payload could be built - no supported Revit 
 
 Copy-Item (Join-Path $here 'Install.ps1')   -Destination $stage -Force
 Copy-Item (Join-Path $here 'Uninstall.ps1') -Destination $stage -Force
-Copy-Item (Join-Path $root 'LICENSE')       -Destination $stage -Force -ErrorAction SilentlyContinue
-Copy-Item (Join-Path $root 'USER_GUIDE.md') -Destination $stage -Force -ErrorAction SilentlyContinue
+foreach ($doc in @('LICENSE', 'THIRD-PARTY-NOTICES.md', 'USER_GUIDE.md')) {
+    $path = Join-Path $root $doc
+    if (Test-Path $path) { Copy-Item $path -Destination $stage -Force }
+    else { Write-Warning "$doc not found at the repo root - omitted from the package." }
+}
 
 @"
 Solar Shading $Version - Revit add-in
@@ -96,6 +99,9 @@ FIRST RUN
 
 UNINSTALL
   .\Uninstall.ps1        (add -AllUsers if you installed for all users)
+
+LICENSE
+  MIT - see LICENSE. Third-party components: THIRD-PARTY-NOTICES.md.
 
 Project page: https://github.com/KenLP/RevitSolarShading
 "@ | Set-Content -Path (Join-Path $stage 'README.txt') -Encoding UTF8
