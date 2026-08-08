@@ -12,13 +12,26 @@ pass/fail. It also casts a building's shadow onto the ground.
 
 ## 1. Install
 
-**Automatic (recommended)** — from the project folder, with Revit closed:
+**From the release package (recommended).** Download `SolarShading-<version>.zip` from the
+[Releases page](https://github.com/KenLP/RevitSolarShading/releases), then with **Revit closed**:
+
+1. Unzip it anywhere.
+2. Right-click **`Install.ps1` → Run with PowerShell** (or run `.\Install.ps1`).
+
+It detects every Revit 2025–2027 on the machine and installs the matching build
+(.NET 8 for 2025/2026, .NET 10 for 2027) into `%AppData%\Autodesk\Revit\Addins\<version>\`.
 
 ```powershell
-./deploy/Deploy.ps1 -RevitVersion 2026          # or 2025 / 2027
+.\Install.ps1 -RevitVersion 2026   # a single version
+.\Install.ps1 -AllUsers            # machine-wide (run PowerShell as Administrator)
+.\Uninstall.ps1                    # remove the add-in
 ```
 
-This copies the add-in to `%AppData%\Autodesk\Revit\Addins\2026\` and writes the manifest.
+If Windows blocks the script, run `Set-ExecutionPolicy -Scope Process -Bypass` once in that
+PowerShell window and try again.
+
+**Building from source instead?** With Revit closed, run `./deploy/Deploy.ps1 -RevitVersion 2026`
+from the repository — it builds and installs in one step.
 
 **First launch:** Revit shows *"The publisher of this add-in could not be verified"* because
 the DLL is unsigned. Click **Always Load**. A **Solar Shading** ribbon tab will appear.

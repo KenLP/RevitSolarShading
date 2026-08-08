@@ -4,8 +4,30 @@ An open-source Revit add-in for **envelope solar shading and ETTV/OTTV complianc
 exact shadow areas, window shading coefficients (SC2) and the envelope thermal-transfer
 value for tropical green-building codes — on Revit 2025–2027 (.NET 8 / .NET 10).
 
-Docs: [USER_GUIDE.md](USER_GUIDE.md) · [PARAMETERS_AND_SETUP.md](PARAMETERS_AND_SETUP.md) ·
-[EXPANSION_PLAN.md](EXPANSION_PLAN.md) (roadmap).
+Docs: [USER_GUIDE.md](USER_GUIDE.md) · [PARAMETERS_AND_SETUP.md](PARAMETERS_AND_SETUP.md)
+
+## Install
+
+Grab the latest `SolarShading-<version>.zip` from
+[Releases](https://github.com/KenLP/RevitSolarShading/releases), then:
+
+1. **Close Revit.**
+2. Unzip, right-click **`Install.ps1` → Run with PowerShell**
+   (or in a PowerShell window: `.\Install.ps1`).
+3. Start Revit → the **Solar Shading** ribbon tab appears.
+4. In each project, click **Setup Parameters** once.
+
+The installer detects every Revit 2025–2027 on the machine and installs the matching
+build (.NET 8 for 2025/2026, .NET 10 for 2027). Useful switches:
+
+```powershell
+.\Install.ps1 -RevitVersion 2026   # one version only
+.\Install.ps1 -AllUsers            # machine-wide (run PowerShell as Administrator)
+.\Uninstall.ps1                    # remove
+```
+
+If Windows blocks the script, run `Set-ExecutionPolicy -Scope Process -Bypass` once in
+that PowerShell window.
 
 ## Structure
 
@@ -25,6 +47,9 @@ src/SolarShading.Revit     Revit add-in (net8.0 for Revit 2025/2026, net10.0 for
                            ShadingOnWindows, BuildingShadowOnGround
   App.cs, SolarShading.addin
 tests/SolarShading.Core.Tests   xUnit — solar position vs NREL SPA reference + analytic shadow areas
+installer/                 Install.ps1 / Uninstall.ps1 (ship with the release),
+                           Build-Package.ps1 (makes the ZIP), SolarShading.iss (optional .exe)
+deploy/Deploy.ps1          one-step build + install for local development
 ```
 
 ### Build
@@ -34,9 +59,19 @@ dotnet test                                                  # Core — 41 unit 
 dotnet build src/SolarShading.Revit -p:RevitVersion=2026     # add-in for Revit 2025/2026 (.NET 8)
 dotnet build src/SolarShading.Revit -p:RevitVersion=2027     # add-in for Revit 2027 (.NET 10)
 ```
-Deploy: copy `SolarShading.Revit.dll`, `SolarShading.Core.dll`, `Clipper2Lib.dll` and
-`SolarShading.addin` into `%AppData%\Autodesk\Revit\Addins\2026\` (fix the Assembly path
-in the .addin or place the DLLs alongside it).
+
+While developing, `deploy/Deploy.ps1 -RevitVersion 2026` builds and installs in one step
+(Revit must be closed).
+
+### Package a release
+
+```
+installer/Build-Package.ps1 -Version 1.0.0
+```
+Builds every payload whose Revit API is installed and writes `dist/SolarShading-<version>.zip`
+— a self-contained installer needing no build tools on the end user's machine. If
+[Inno Setup 6](https://jrsoftware.org/isdl.php) is installed it also compiles
+`dist/SolarShading-<version>-Setup.exe` from `installer/SolarShading.iss`.
 
 ## Algorithm
 
@@ -64,7 +99,7 @@ dotnet test
 - ✅ Revit add-in builds against RevitAPI 2026 (.NET 8) and 2027 (.NET 10).
 - ✅ Three commands: tag shading devices, shading-on-windows (SC2 + ETTV pass/fail + CSV; red overlay re-drawn each run), building-shadow-on-ground (Mass selection, date/time picker).
 - ✅ **WPF UI**: configuration dialog (dates, hours, glazing, threshold, outputs) + per-orientation ETTV results table.
-- ✅ **Deploy script** (`deploy/Deploy.ps1`) installs into `%AppData%\...\Addins\<ver>\`.
+- ✅ **Installer**: `installer/Build-Package.ps1` produces a self-contained ZIP (per-user or all-users install, auto-detects Revit 2025–2027, matching .NET 8 / .NET 10 payload, clean uninstall); optional Inno Setup `.exe`. `deploy/Deploy.ps1` covers the developer build-and-install loop.
 - ✅ SC2 weighted by **ASHRAE clear-sky** incident irradiance; window outline from the **rough opening** (RevitAPIIFC) with largest-face fallback.
 - ✅ **Per-element glazing**: U-value and SHGC→SC1 read from each window's family/type, area-weighted per orientation (dialog glazing is only a fallback).
 - ✅ User guide: [USER_GUIDE.md](USER_GUIDE.md) / [USER_GUIDE.pdf](USER_GUIDE.pdf).

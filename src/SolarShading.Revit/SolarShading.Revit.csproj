@@ -16,6 +16,9 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>SolarShading.Revit</AssemblyName>
     <RootNamespace>SolarShading.Revit</RootNamespace>
+    <Version>1.0.0</Version>
+    <Product>Solar Shading</Product>
+    <Company>Solar Shading (open source)</Company>
     <!-- Revit loads the add-in by path, not via NuGet/deps.json resolution, so every
          non-Revit dependency (Clipper2Lib.dll, SolarShading.Core.dll) must sit next to
          the add-in DLL. This copies them into the output folder. -->
